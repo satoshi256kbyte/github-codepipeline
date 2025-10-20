@@ -1,8 +1,5 @@
 format: table
 exit-code: 1
 severity:
-  - UNKNOWN
-  - LOW
-  - MEDIUM
   - HIGH
   - CRITICAL
