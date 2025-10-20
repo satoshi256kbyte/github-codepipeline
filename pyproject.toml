@@ -10,7 +10,7 @@ authors = [
     {name = "Developer", email = "developer@example.com"}
 ]
 readme = "README.md"
-requires-python = "=3.13.1"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",

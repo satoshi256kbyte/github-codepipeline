@@ -22,6 +22,7 @@ jobs:
           echo "Cache key: $CACHE_KEY"
 
       - name: Cache dependencies
+        id: cache
         uses: actions/cache@v4
         with:
           path: |
@@ -30,7 +31,10 @@ jobs:
             ~/.cache/uv
             ~/.cargo
             ~/.local/bin
+            .venv
           key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            cache-
     
       - name: Setup asdf
         uses: asdf-vm/actions/setup@v4
@@ -39,7 +43,6 @@ jobs:
         run: |
           asdf plugin add python
           asdf install
-          ls -la
 
       - name: Setup uv
         run: |
@@ -48,6 +51,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
+          source $HOME/.cargo/env
           uv sync --dev
 
   # 静的解析ジョブ
@@ -69,10 +73,26 @@ jobs:
             ~/.cache/uv
             ~/.cargo
             ~/.local/bin
+            .venv
           key: ${{ needs.prepare.outputs.cache-key }}
+          restore-keys: |
+            cache-
+
+      - name: Setup asdf
+        uses: asdf-vm/actions/setup@v4
+
+      - name: Setup Python with asdf
+        run: |
+          asdf plugin add python || true
+          asdf install
+
+      - name: Setup uv
+        run: |
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Run linting
         run: |
+          source $HOME/.cargo/env
           uv run ruff check .
           uv run ruff format --check .
 
@@ -95,10 +115,26 @@ jobs:
             ~/.cache/uv
             ~/.cargo
             ~/.local/bin
+            .venv
           key: ${{ needs.prepare.outputs.cache-key }}
+          restore-keys: |
+            cache-
+
+      - name: Setup asdf
+        uses: asdf-vm/actions/setup@v4
+
+      - name: Setup Python with asdf
+        run: |
+          asdf plugin add python || true
+          asdf install
+
+      - name: Setup uv
+        run: |
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Run tests
         run: |
+          source $HOME/.cargo/env
           uv run pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
 
   # SCAチェックジョブ（Trivy)
@@ -136,8 +172,24 @@ jobs:
             ~/.cache/uv
             ~/.cargo
             ~/.local/bin
+            .venv
           key: ${{ needs.prepare.outputs.cache-key }}
+          restore-keys: |
+            cache-
+
+      - name: Setup asdf
+        uses: asdf-vm/actions/setup@v4
+
+      - name: Setup Python with asdf
+        run: |
+          asdf plugin add python || true
+          asdf install
+
+      - name: Setup uv
+        run: |
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Run Semgrep SAST scan
         run: |
-           uv run semgrep scan --config=auto --error modules/
+          source $HOME/.cargo/env
+          uv run semgrep scan --config=auto --error modules/
