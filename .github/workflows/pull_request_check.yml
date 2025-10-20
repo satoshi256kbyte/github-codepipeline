@@ -39,6 +39,7 @@ jobs:
         run: |
           asdf plugin add python
           asdf install
+          ls -la
 
       - name: Setup uv
         run: |
