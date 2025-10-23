@@ -19,7 +19,7 @@ Parameters:
   ServiceName:
     Description: Name of the service
     Type: String
-    Default: comparison
+    Default: example
 
   StageName:
     Description: Deployment stage for environment separation

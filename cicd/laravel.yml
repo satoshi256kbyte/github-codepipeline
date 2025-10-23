@@ -35,11 +35,7 @@ Parameters:
   ServiceName:
     Description: "Service name"
     Type: "String"
-    Default: "codepipeline"
-    AllowedValues:
-      - "codepipeline"
-      - "github"
-      - "gitlab"
+    Default: "example"
   StageName:
     Description: "Stage name"
     Type: "String"
