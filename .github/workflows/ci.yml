@@ -8,9 +8,8 @@ on:
 
 env:
   AWS_REGION: ap-northeast-1
-  SERVICE_NAME: cicd-comparison
+  CICD_TOOL: example
   STAGE_NAME: local
-  CICD_TOOL: github
   PYTHON_VERSION: "3.13"
 
 jobs:
