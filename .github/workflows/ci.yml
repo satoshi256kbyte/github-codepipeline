@@ -84,6 +84,7 @@ jobs:
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
+          rm -rf .venv
           uv sync --group dev
           
       - name: Run linting
@@ -118,6 +119,7 @@ jobs:
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
+          rm -rf .venv
           uv sync --group dev
           
       - name: Run tests
@@ -167,6 +169,7 @@ jobs:
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
+          rm -rf .venv
           uv sync --group dev
           
       - name: Run Semgrep SAST scan
