@@ -66,7 +66,7 @@ jobs:
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           curl -LsSf https://astral.sh/uv/install.sh | sh
           export PATH="$HOME/.local/bin:$PATH"
-          uv sync --group dev
+          uv sync --group dev --python $(which python)
           
       - name: Run linting
         run: |
