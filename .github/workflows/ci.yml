@@ -55,7 +55,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          uv sync --dev
+          uv sync --dev --group dev
 
   # 静的解析ジョブ
   lint:
@@ -83,6 +83,8 @@ jobs:
       - name: Setup environment
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
+          uv sync --dev --group dev
           
       - name: Run linting
         run: |
@@ -115,6 +117,8 @@ jobs:
       - name: Setup environment
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
+          uv sync --dev --group dev
           
       - name: Run tests
         run: |
@@ -162,6 +166,8 @@ jobs:
       - name: Setup environment
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.local/bin:$PATH"
+          uv sync --dev --group dev
           
       - name: Run Semgrep SAST scan
         run: |
