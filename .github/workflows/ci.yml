@@ -58,6 +58,20 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           uv sync --dev
 
+      - name: Verify installation before cache
+        run: |
+          echo "=== Pre-cache verification ==="
+          echo "HOME: $HOME"
+          echo "Cargo directory:"
+          ls -la ~/.cargo/ || echo "No .cargo directory"
+          echo "Cargo bin directory:"
+          ls -la ~/.cargo/bin/ || echo "No .cargo/bin directory"
+          echo "UV location:"
+          which uv || echo "uv not found in PATH"
+          echo "UV version:"
+          uv --version || echo "uv command failed"
+          echo "Current PATH: $PATH"
+    
   # 静的解析ジョブ
   lint:
     name: Lint
