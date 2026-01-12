@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CodeBuild GitHub Runner CI
 
 on:
   push:
@@ -31,10 +31,6 @@ jobs:
         with:
           path: |
             ~/.asdf
-            ~/.cache/pip
-            ~/.cache/uv
-            ~/.local/bin
-            .venv
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             cache-
@@ -46,16 +42,6 @@ jobs:
         run: |
           asdf plugin add python
           asdf install
-
-      - name: Setup uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
-      - name: Install Python dependencies
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          uv sync
 
   lint_test_sast:
     name: Lint Test SAST
@@ -71,10 +57,6 @@ jobs:
         with:
           path: |
             ~/.asdf
-            ~/.cache/pip
-            ~/.cache/uv
-            ~/.local/bin
-            .venv
           key: ${{ needs.prepare.outputs.cache-key }}
           restore-keys: |
             cache-
@@ -82,20 +64,24 @@ jobs:
       - name: Setup environment
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
+          curl -LsSf https://astral.sh/uv/install.sh | sh
           export PATH="$HOME/.local/bin:$PATH"
           uv sync --group dev
           
       - name: Run linting
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           uv run ruff check .
           uv run ruff format --check .
 
       - name: Run tests
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           uv run pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
 
       - name: Run Semgrep SAST scan
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           uv run semgrep scan --config=auto --error modules/
 
   # SCAチェックジョブ（Trivy)
