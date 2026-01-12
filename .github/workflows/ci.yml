@@ -10,7 +10,7 @@ jobs:
   # キャッシュ作成ジョブ
   prepare:
     name: Prepare
-    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.run_attempt }}
     environment: production
     outputs:
       cache-key: ${{ steps.cache-key.outputs.key }}
@@ -61,7 +61,7 @@ jobs:
   # 静的解析ジョブ
   lint:
     name: Lint
-    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.run_attempt }}
     needs: prepare
     environment: production
     steps:
@@ -103,7 +103,7 @@ jobs:
   # ユニットテストジョブ
   unittest:
     name: Unit Tests
-    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.run_attempt }}
     needs: prepare
     environment: production
     steps:
@@ -144,7 +144,7 @@ jobs:
   # SCAチェックジョブ（Trivy)
   sca_trivy:
     name: SCA (Trivy)
-    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.run_attempt }}
     needs: prepare
     steps:
       - name: Checkout code
@@ -160,7 +160,7 @@ jobs:
   # SASTチェックジョブ（Semgrep）
   sast_semgrep:
     name: SAST (Semgrep)
-    runs-on: codebuild-<project-name>-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.run_attempt }}
     needs: prepare
     environment: production
     steps:
