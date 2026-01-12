@@ -120,22 +120,9 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           uv sync --group dev
           
-      - name: Debug environment
-        run: |
-          echo "=== UV Environment Debug ==="
-          uv pip list
-          echo "=== Python path ==="
-          which python
-          echo "=== Pytest location ==="
-          find .venv -name "pytest*" -type f 2>/dev/null || echo "pytest not found in .venv"
-          echo "=== Direct pytest test ==="
-          .venv/bin/pytest --version || echo "Direct pytest failed"
-          
       - name: Run tests
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          uv pip install pytest pytest-cov httpx
-          uv run python -m pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
+          uv run pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
 
   # SCAチェックジョブ（Trivy)
   sca_trivy:
@@ -180,8 +167,8 @@ jobs:
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
-          uv pip install semgrep
+          uv sync --group dev
           
       - name: Run Semgrep SAST scan
         run: |
-          uv run python -m semgrep scan --config=auto --error modules/
+          uv run semgrep scan --config=auto --error modules/
