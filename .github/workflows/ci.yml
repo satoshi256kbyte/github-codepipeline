@@ -33,7 +33,6 @@ jobs:
             ~/.asdf
             ~/.cache/pip
             ~/.cache/uv
-            ~/.cargo
             ~/.local/bin
             .venv
           key: ${{ steps.cache-key.outputs.key }}
@@ -51,27 +50,13 @@ jobs:
       - name: Setup uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       
       - name: Install Python dependencies
         run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
+          export PATH="$HOME/.local/bin:$PATH"
           uv sync --dev
 
-      - name: Verify installation before cache
-        run: |
-          echo "=== Pre-cache verification ==="
-          echo "HOME: $HOME"
-          echo "Cargo directory:"
-          ls -la ~/.cargo/ || echo "No .cargo directory"
-          echo "Cargo bin directory:"
-          ls -la ~/.cargo/bin/ || echo "No .cargo/bin directory"
-          echo "UV location:"
-          which uv || echo "uv not found in PATH"
-          echo "UV version:"
-          uv --version || echo "uv command failed"
-          echo "Current PATH: $PATH"
-    
   # 静的解析ジョブ
   lint:
     name: Lint
@@ -89,7 +74,6 @@ jobs:
             ~/.asdf
             ~/.cache/pip
             ~/.cache/uv
-            ~/.cargo
             ~/.local/bin
             .venv
           key: ${{ needs.prepare.outputs.cache-key }}
@@ -98,21 +82,8 @@ jobs:
 
       - name: Setup environment
         run: |
-          echo "=== Debug Info ==="
-          echo "HOME: $HOME"
-          ls -la $HOME/ | grep -E "(asdf|cargo)" || echo "No asdf/cargo dirs found"
-          echo "Current PATH: $PATH"
+          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           
-          # PATHに追加
-          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.cargo/bin" >> $GITHUB_PATH
-          
-          # 直接確認
-          if [ -f "$HOME/.cargo/bin/uv" ]; then
-            echo "uv found at $HOME/.cargo/bin/uv"
-          else
-            echo "uv not found at $HOME/.cargo/bin/uv"
-          fi
-        
       - name: Run linting
         run: |
           uv run ruff check .
@@ -135,7 +106,6 @@ jobs:
             ~/.asdf
             ~/.cache/pip
             ~/.cache/uv
-            ~/.cargo
             ~/.local/bin
             .venv
           key: ${{ needs.prepare.outputs.cache-key }}
@@ -144,7 +114,7 @@ jobs:
 
       - name: Setup environment
         run: |
-          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           
       - name: Run tests
         run: |
@@ -183,7 +153,6 @@ jobs:
             ~/.asdf
             ~/.cache/pip
             ~/.cache/uv
-            ~/.cargo
             ~/.local/bin
             .venv
           key: ${{ needs.prepare.outputs.cache-key }}
@@ -192,9 +161,8 @@ jobs:
 
       - name: Setup environment
         run: |
-          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           
       - name: Run Semgrep SAST scan
         run: |
           uv run semgrep scan --config=auto --error modules/
-
