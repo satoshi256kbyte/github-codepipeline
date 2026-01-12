@@ -82,18 +82,6 @@ jobs:
           restore-keys: |
             cache-
 
-      - name: Setup asdf
-        uses: asdf-vm/actions/setup@v4
-
-      - name: Setup Python with asdf
-        run: |
-          asdf plugin add python || true
-          asdf install
-
-      - name: Setup uv
-        run: |
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
       - name: Run linting
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
@@ -123,18 +111,6 @@ jobs:
           key: ${{ needs.prepare.outputs.cache-key }}
           restore-keys: |
             cache-
-
-      - name: Setup asdf
-        uses: asdf-vm/actions/setup@v4
-
-      - name: Setup Python with asdf
-        run: |
-          asdf plugin add python || true
-          asdf install
-
-      - name: Setup uv
-        run: |
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Run tests
         run: |
@@ -180,18 +156,6 @@ jobs:
           key: ${{ needs.prepare.outputs.cache-key }}
           restore-keys: |
             cache-
-
-      - name: Setup asdf
-        uses: asdf-vm/actions/setup@v4
-
-      - name: Setup Python with asdf
-        run: |
-          asdf plugin add python || true
-          asdf install
-
-      - name: Setup uv
-        run: |
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Run Semgrep SAST scan
         run: |
