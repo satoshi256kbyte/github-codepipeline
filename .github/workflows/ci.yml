@@ -84,8 +84,21 @@ jobs:
 
       - name: Setup environment
         run: |
+          echo "=== Debug Info ==="
+          echo "HOME: $HOME"
+          ls -la $HOME/ | grep -E "(asdf|cargo)" || echo "No asdf/cargo dirs found"
+          echo "Current PATH: $PATH"
+          
+          # PATHに追加
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.cargo/bin" >> $GITHUB_PATH
           
+          # 直接確認
+          if [ -f "$HOME/.cargo/bin/uv" ]; then
+            echo "uv found at $HOME/.cargo/bin/uv"
+          else
+            echo "uv not found at $HOME/.cargo/bin/uv"
+          fi
+        
       - name: Run linting
         run: |
           uv run ruff check .
