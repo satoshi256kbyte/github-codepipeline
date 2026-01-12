@@ -64,24 +64,24 @@ jobs:
       - name: Setup environment
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
+          echo "UV_PYTHON=$HOME/.asdf/shims/python" >> $GITHUB_ENV
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          export PATH="$HOME/.local/bin:$PATH"
-          uv sync --group dev --python $(which python)
+          export PATH="$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin:$PATH"
+          echo "Using Python: $HOME/.asdf/shims/python"
+          $HOME/.asdf/shims/python --version
+          UV_PYTHON=$HOME/.asdf/shims/python uv sync --group dev
           
       - name: Run linting
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           uv run ruff check .
           uv run ruff format --check .
 
       - name: Run tests
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           uv run pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
 
       - name: Run Semgrep SAST scan
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           uv run semgrep scan --config=auto --error modules/
 
   # SCAチェックジョブ（Trivy)
