@@ -82,9 +82,12 @@ jobs:
           restore-keys: |
             cache-
 
+      - name: Setup environment
+        run: |
+          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.cargo/bin" >> $GITHUB_PATH
+          
       - name: Run linting
         run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
           uv run ruff check .
           uv run ruff format --check .
 
@@ -112,9 +115,12 @@ jobs:
           restore-keys: |
             cache-
 
+      - name: Setup environment
+        run: |
+          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.cargo/bin" >> $GITHUB_PATH
+          
       - name: Run tests
         run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
           uv run pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
 
   # SCAチェックジョブ（Trivy)
@@ -157,8 +163,11 @@ jobs:
           restore-keys: |
             cache-
 
+      - name: Setup environment
+        run: |
+          echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.cargo/bin" >> $GITHUB_PATH
+          
       - name: Run Semgrep SAST scan
         run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
           uv run semgrep scan --config=auto --error modules/
 
