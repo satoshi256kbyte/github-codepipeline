@@ -6,12 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  AWS_REGION: ap-northeast-1
-  CICD_TOOL: example
-  STAGE_NAME: local
-  PYTHON_VERSION: "3.13"
-
 jobs:
   # キャッシュ作成ジョブ
   prepare:
@@ -67,7 +61,7 @@ jobs:
   # 静的解析ジョブ
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.
     needs: prepare
     environment: production
     steps:
@@ -109,7 +103,7 @@ jobs:
   # ユニットテストジョブ
   unittest:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.
     needs: prepare
     environment: production
     steps:
@@ -150,7 +144,7 @@ jobs:
   # SCAチェックジョブ（Trivy)
   sca_trivy:
     name: SCA (Trivy)
-    runs-on: ubuntu-latest
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.
     needs: prepare
     steps:
       - name: Checkout code
@@ -166,7 +160,7 @@ jobs:
   # SASTチェックジョブ（Semgrep）
   sast_semgrep:
     name: SAST (Semgrep)
-    runs-on: ubuntu-latest
+    runs-on: codebuild-github-runner-project-${{ github.run_id }}-${{ github.
     needs: prepare
     environment: production
     steps:
@@ -204,118 +198,3 @@ jobs:
           source $HOME/.cargo/env
           uv run semgrep scan --config=auto --error modules/
 
-  # EC2 CodeDeployデプロイジョブ
-  deploy_ec2:
-    name: Deploy to EC2
-    runs-on: ubuntu-latest
-    needs: [prepare, lint, unittest, sca_trivy, sast_semgrep]
-    environment: production
-    permissions:
-      id-token: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Restore cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.asdf
-            ~/.cache/pip
-            ~/.cache/uv
-            ~/.cargo
-            ~/.local/bin
-          key: ${{ needs.prepare.outputs.cache-key }}
-
-      - name: Configure AWS credentials via OIDC
-        # GitHub OIDCを使ってIAMロールを引き受ける
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Create deployment package
-        run: |
-          zip -r deployment-package.zip . \
-            -x "*.git*" "*.pyc" "__pycache__/*" ".venv/*" ".asdf/*" \
-            "cdk.out/*" "*.zip"
-
-      - name: Upload to S3
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          BUCKET_NAME="comparison-${{ env.STAGE_NAME }}-${ACCOUNT_ID}-artifact-bucket"
-          S3_KEY="ec2-deployments/${{ github.sha }}/deployment-package.zip"
-
-          aws s3 cp deployment-package.zip s3://$BUCKET_NAME/$S3_KEY
-          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
-          echo "S3_LOCATION=s3://$BUCKET_NAME/$S3_KEY" >> $GITHUB_ENV
-
-      - name: Deploy to EC2 using CodeDeploy
-        run: |
-          # 既存のアクティブなデプロイメントを確認・停止
-          echo "Checking for active deployments..."
-          ACTIVE_DEPLOYMENTS=$(aws deploy list-deployments \
-            --application-name "${{ env.CICD_TOOL }}-${{ env.STAGE_NAME }}-codedeploy-application" \
-            --deployment-group-name "${{ env.CICD_TOOL }}-${{ env.STAGE_NAME }}-codedeploy-deployment-group" \
-            --include-only-statuses "Created" "Queued" "InProgress" \
-            --query "deployments" \
-            --output text \
-            --region ${{ env.AWS_REGION }})
-
-          if [ ! -z "$ACTIVE_DEPLOYMENTS" ] && [ "$ACTIVE_DEPLOYMENTS" != "None" ]; then
-            echo "Found active deployment(s): $ACTIVE_DEPLOYMENTS"
-            for DEPLOYMENT_ID in $ACTIVE_DEPLOYMENTS; do
-              echo "Stopping deployment: $DEPLOYMENT_ID"
-              aws deploy stop-deployment \
-                --deployment-id $DEPLOYMENT_ID \
-                --auto-rollback-enabled \
-                --region ${{ env.AWS_REGION }} || true
-            done
-            echo "Waiting for deployments to stop..."
-            sleep 30
-          fi
-
-          # 新しいデプロイメントを作成
-          DEPLOYMENT_ID=$(aws deploy create-deployment \
-            --application-name "${{ env.CICD_TOOL }}-${{ env.STAGE_NAME }}-codedeploy-application" \
-            --deployment-group-name "${{ env.CICD_TOOL }}-${{ env.STAGE_NAME }}-codedeploy-deployment-group" \
-            --deployment-config-name "CodeDeployDefault.AllAtOnce" \
-            --s3-location bucket="${{ env.BUCKET_NAME }}",key="ec2-deployments/${{ github.sha }}/deployment-package.zip",bundleType=zip \
-            --region ${{ env.AWS_REGION }} \
-            --query "deploymentId" \
-            --output text)
-
-          echo "Deployment ID: $DEPLOYMENT_ID"
-
-          # デプロイメント完了まで待機
-          TIMEOUT=1800
-          INTERVAL=30
-          ELAPSED=0
-
-          while true; do
-            STATUS=$(aws deploy get-deployment \
-              --deployment-id "$DEPLOYMENT_ID" \
-              --region ${{ env.AWS_REGION }} \
-              --query "deploymentInfo.status" \
-              --output text)
-            
-            echo "[$ELAPSED sec] Deployment status: $STATUS"
-            
-            if [[ "$STATUS" == "Succeeded" ]]; then
-              echo "Deployment succeeded."
-              break
-            fi
-            
-            if [[ "$STATUS" == "Failed" || "$STATUS" == "Stopped" ]]; then
-              echo "Deployment failed or was stopped."
-              exit 1
-            fi
-            
-            if [[ $ELAPSED -ge $TIMEOUT ]]; then
-              echo "Deployment timeout after $TIMEOUT seconds."
-              exit 1
-            fi
-            
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-          done
