@@ -55,7 +55,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          uv sync --dev --group dev
+          uv sync --group dev
 
   # 静的解析ジョブ
   lint:
@@ -84,7 +84,7 @@ jobs:
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
-          uv sync --dev --group dev
+          uv sync --group dev
           
       - name: Run linting
         run: |
@@ -118,11 +118,12 @@ jobs:
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
-          uv sync --dev --group dev
+          uv sync --group dev
           
       - name: Run tests
         run: |
-          uv run pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
+          export PATH="$HOME/.local/bin:$PATH"
+          uv run --with pytest --with pytest-cov --with httpx pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
 
   # SCAチェックジョブ（Trivy)
   sca_trivy:
@@ -167,7 +168,7 @@ jobs:
         run: |
           echo "$HOME/.asdf/bin:$HOME/.asdf/shims:$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
-          uv sync --dev --group dev
+          uv sync --group dev
           
       - name: Run Semgrep SAST scan
         run: |
