@@ -52,10 +52,10 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
+      
       - name: Install Python dependencies
         run: |
-          source $HOME/.cargo/env
+          export PATH="$HOME/.cargo/bin:$PATH"
           uv sync --dev
 
   # 静的解析ジョブ
@@ -96,7 +96,7 @@ jobs:
 
       - name: Run linting
         run: |
-          source $HOME/.cargo/env
+          export PATH="$HOME/.cargo/bin:$PATH"
           uv run ruff check .
           uv run ruff format --check .
 
@@ -138,7 +138,7 @@ jobs:
 
       - name: Run tests
         run: |
-          source $HOME/.cargo/env
+          export PATH="$HOME/.cargo/bin:$PATH"
           uv run pytest modules/api/tests/ -v --cov=modules/api --cov-report=xml
 
   # SCAチェックジョブ（Trivy)
@@ -195,6 +195,6 @@ jobs:
 
       - name: Run Semgrep SAST scan
         run: |
-          source $HOME/.cargo/env
+          export PATH="$HOME/.cargo/bin:$PATH"
           uv run semgrep scan --config=auto --error modules/
 
